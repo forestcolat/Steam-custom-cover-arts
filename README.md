@@ -56,6 +56,16 @@ Tag 1 through Tag 6 -> TAG_1_BACK through TAG_6_BACK
 Internal SVG names remain unchanged. The supplied SVG includes Tag 5 and Tag 6;
 those inputs now appear in the editor. All requested display labels are renamed without changing the SVG identifiers.
 
+## Artwork picker layout
+
+Click an artwork preview to choose an image; native file inputs are hidden.
+Front and Back appear side by side, SD Art is centered underneath, and screenshots
+appear in a 2x2 grid: 1 upper left, 2 upper right, 3 lower left, 4 lower right.
+Preview frames retain the original SVG slot aspect ratios. Images are shown with
+proportional centered cover cropping, matching the existing template behavior.
+The small reset arrow restores original slot artwork. Thumbnails update for manual
+uploads, Steam imports and reopened projects. All SVG geometry remains unchanged.
+
 ## Steam import
 
 Enter a Steam App ID and press Fetch from Steam. Confirm before replacing content.

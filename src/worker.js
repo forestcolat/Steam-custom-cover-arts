@@ -4,6 +4,7 @@ const HOSTS = new Set([
   'cdn.akamai.steamstatic.com', 'cdn.cloudflare.steamstatic.com'
 ]);
 const MAX_BYTES = 4 * 1024 * 1024;
+let tagDictionaryCache = null;
 const CDN = 'https://shared.akamai.steamstatic.com/store_item_assets/';
 
 async function upstream(url) {
@@ -93,6 +94,20 @@ async function imageData(urls) {
   }
   return null;
 }
+async function storeTags(appid) {
+  const page = new TextDecoder().decode(await upstream(`https://store.steampowered.com/app/${appid}/?l=english&cc=us`));
+  const tags = [];
+  for (const match of page.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi)) {
+    const classes = match[1].match(/\bclass\s*=\s*(["'])(.*?)\1/i)?.[2] || '';
+    if (!classes.split(/\s+/).includes('app_tag')) continue;
+    const tag = plain(match[2]);
+    if (tag && !tags.includes(tag)) tags.push(tag);
+    if (tags.length === 6) break;
+  }
+  if (!tags.length) throw new Error('Store tags not available');
+  return tags;
+}
+
 export async function importGame(appid) {
   const details = new URL('https://store.steampowered.com/api/appdetails');
   details.search = new URLSearchParams({ appids: appid, l: 'english', cc: 'us' });
@@ -105,13 +120,16 @@ export async function importGame(appid) {
   }
   const data = game.data;
   let assets = {};
+  let rankedTagIds = [];
   const warnings = [];
   try {
     const browse = new URL('https://api.steampowered.com/IStoreBrowseService/GetItems/v1/');
     browse.searchParams.set('input_json', JSON.stringify({ ids: [{ appid: Number(appid) }],
-      context: { language: 'english', country_code: 'US' }, data_request: { include_assets: true } }));
+      context: { language: 'english', country_code: 'US' }, data_request: { include_assets: true, include_tag_count: 6 } }));
     const metadata = await jsonUpstream(browse.href);
-    assets = metadata.response?.store_items?.[0]?.assets || {};
+    const item = metadata.response?.store_items?.[0] || {};
+    assets = item.assets || {};
+    rankedTagIds = (item.tags || []).slice(0, 6).map(tag => tag.tagid);
   } catch { warnings.push('Steam asset metadata unavailable; standard library artwork paths were tried.'); }
   function candidates(keys, defaults) {
     const urls = [];
@@ -127,6 +145,7 @@ export async function importGame(appid) {
   const iconHash = assets.community_icon;
   const iconUrls = typeof iconHash === 'string' && /^[a-f0-9]{40}$/i.test(iconHash)
     ? ['cdn.akamai.steamstatic.com','cdn.cloudflare.steamstatic.com','shared.akamai.steamstatic.com'].map(host => `https://${host}/steamcommunity/public/images/apps/${appid}/${iconHash}.jpg`) : [];
+  const tagsPromise = storeTags(appid).catch(() => null);
   const jobs = {
     client_icon: iconUrls,
     capsule: candidates(['library_capsule_2x', 'library_capsule'], ['library_600x900.jpg']),
@@ -136,12 +155,39 @@ export async function importGame(appid) {
     jobs[`screenshot_${index + 1}`] = [shot.path_full || shot.path_thumbnail];
   }
   const images = Object.fromEntries(await Promise.all(Object.entries(jobs).map(async ([key, urls]) => [key, await imageData(urls)])));
-  for (const key of ['capsule', 'hero', 'client_icon', 'screenshot_1', 'screenshot_2', 'screenshot_3', 'screenshot_4']) {
+  if (images.client_icon) {
+    images.sd_art = { ...images.client_icon, fit: 'cover', kind: 'client_icon' };
+  } else {
+    const logo = await imageData(candidates(['library_logo_2x', 'library_logo', 'logo_2x', 'logo'], ['logo_2x.png', 'logo.png']));
+    if (logo) {
+      images.sd_art = { ...logo, fit: 'contain', kind: 'logo' };
+    } else if (images.capsule) {
+      images.sd_art = { ...images.capsule, fit: 'cover', kind: 'front' };
+    } else {
+      images.sd_art = null;
+    }
+  }
+  let tags = await tagsPromise;
+  // Age-gated/SSR pages may omit visible tag anchors. Steam's ranked tag IDs
+  // and localized tag dictionary provide the same store-tag names without
+  // treating genres or content descriptors as user-defined tags.
+  if (!tags && rankedTagIds.length) {
+    try {
+      if (!tagDictionaryCache || Date.now() - tagDictionaryCache.time > 3600000) {
+        const list = await jsonUpstream('https://api.steampowered.com/IStoreService/GetTagList/v1/?language=english');
+        tagDictionaryCache = { time: Date.now(), names: new Map((list.response?.tags || []).map(tag => [tag.tagid, plain(tag.name)])) };
+      }
+      const resolved = rankedTagIds.map(id => tagDictionaryCache.names.get(id));
+      if (resolved.every(Boolean)) tags = resolved;
+    } catch { /* Keep manual tags if Steam cannot supply the names. */ }
+  }
+  if (!tags) warnings.push('Steam store tags unavailable; existing tags were kept.');
+  for (const key of ['capsule', 'hero', 'sd_art', 'screenshot_1', 'screenshot_2', 'screenshot_3', 'screenshot_4']) {
     if (!images[key]) warnings.push(`${key.replaceAll('_', ' ')} unavailable; existing artwork will be kept.`);
   }
   const description = plain(data.short_description);
   if (!description) warnings.push('Short description unavailable; existing description will be kept.');
-  return { appid, name: plain(data.name), description, images, warnings, language: 'english', country: 'US' };
+  return { appid, name: plain(data.name), description, tags, images, warnings, language: 'english', country: 'US' };
 }
 function reply(data, status = 200, extra = {}) {
   return Response.json(data, { status, headers: { 'Cache-Control': 'no-store',
@@ -164,7 +210,7 @@ export default {
       const limited = await env.STEAM_RATE_LIMITER.limit({ key: request.headers.get('CF-Connecting-IP') || 'unknown' });
       if (!limited.success) return reply({ error: 'Too many imports. Please wait a minute.' }, 429);
     }
-    const cacheKey = new Request(`${url.origin}/__steam-cache-v2/${match[1]}`);
+    const cacheKey = new Request(`${url.origin}/__steam-cache-v4/${match[1]}`);
     const cache = caches.default;
     const cached = await cache.match(cacheKey);
     if (cached) return new Response(cached.body, { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });

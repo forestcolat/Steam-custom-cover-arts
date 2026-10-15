@@ -58,8 +58,10 @@ those inputs now appear in the editor. All requested display labels are renamed 
 
 ## Artwork picker layout
 
-APP ID and Fetch from Steam are at the top of the sidebar, above all art/text
-options. The four screenshots share one Screenshots heading.
+APP ID and Fetch from Steam are at the top of the sidebar with no explanatory
+paragraph. Reset template is directly below them. The four screenshots share one
+Screenshots heading. The title input is simply labeled Title. Image measurement
+subtitles have been removed.
 
 Click an artwork preview to choose an image; native file inputs are hidden.
 Front and Back appear side by side, SD Art is centered underneath, and screenshots
@@ -75,15 +77,24 @@ and reopened projects. All SVG geometry remains unchanged.
 Enter a Steam App ID and press Fetch from Steam. Confirm before replacing content.
 
 - ART_FRONT: portrait library capsule.
-- ART_SD: Steam client/community icon from Steam asset metadata (if available).
+- ART_SD: client icon first; if missing, centered logo with full-image contain
+  fitting; if no logo is available, the front capsule with cover cropping.
+  If none is available, the current SD artwork remains unchanged.
 - ART_BACK: library hero.
 - INGAME_1_BACK through INGAME_4_BACK: first four store screenshots (not videos).
 - TITLE_BACK and TITLE_SPINE: store game name.
 - DESCRIPTION_BACK: English short store description.
 - APPID_FRONT, APPID_BACK and APPID_SD: one synchronized App ID.
+- TAG_1_BACK through TAG_6_BACK: first six store user-defined tags in order.
+  The importer reads store-page tag anchors when available; age-gated/SSR pages
+  fall back to Steam ranked tag metadata and its English tag-name dictionary.
+  These are store tags, not inferred genres. If fewer than six tags exist, the
+  remaining fields are cleared. If tag retrieval fails entirely, existing tags
+  are preserved and a warning appears.
 
-Tags stay as entered; importing does not change them. Missing assets keep the
-existing image, and missing descriptions keep existing text. Failed imports
+Importing now replaces the tag fields when Steam supplies tags. All fields remain
+manually editable. Missing assets keep the existing image, and missing descriptions
+keep existing text. Failed imports
 show an error. Image candidates are limited to three per slot. The importer
 tries high-resolution assets first where supplied in Steam metadata.
 
@@ -100,10 +111,18 @@ SVG: original vector template with embedded images.
 The full newly supplied sheet including SD artwork and guides is exported.
 The supplied SD image frame is 20 x 25 template units (4:5). Both the SD preview
 and image use that ratio, with proportional centered cover cropping. Its original
-transforms and clip path are preserved. Steam client icons may be low-resolution;
+transforms and clip path are preserved. A logo fallback uses meet/contain, with
+a matching dark background, and fit mode survives project save/reopen. Steam
+client icons may be low-resolution;
 you may manually replace SD Art with a higher-resolution image.
 Print at Actual size / 100%. RGB output, not CMYK/PDF-X.
-Motiva Sans is not bundled: install it or upload a licensed font file.
+The seven Motiva Sans fonts supplied by you are bundled as embedded WOFF font
+faces: Thin (250), Light (300), Regular (400), Medium (500), Bold (700),
+ExtraBold (800), and Black (900). Text retains the weights specified in the SVG.
+Fonts are also embedded into exported SVG, and used when rasterizing PNG/PDF.
+No local font installation or font upload is required. Older projects with an
+explicit custom-font override may still restore that override. Ensure you have
+permission to embed/redistribute these supplied fonts before publishing publicly.
 Description overflow blocks export until shortened. Long titles/tags are fit
 within available widths. Uploaded text changes remain manually editable.
 

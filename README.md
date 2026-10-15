@@ -1,4 +1,4 @@
-# Switch Template Studio — Cloudflare edition
+# CaseArt Makertool — Cloudflare edition
 
 A fixed SVG editor and Steam importer deployed together on Cloudflare Workers.
 There is no Python server to install or run for everyday use.
@@ -58,19 +58,24 @@ those inputs now appear in the editor. All requested display labels are renamed 
 
 ## Artwork picker layout
 
+APP ID and Fetch from Steam are at the top of the sidebar, above all art/text
+options. The four screenshots share one Screenshots heading.
+
 Click an artwork preview to choose an image; native file inputs are hidden.
 Front and Back appear side by side, SD Art is centered underneath, and screenshots
 appear in a 2x2 grid: 1 upper left, 2 upper right, 3 lower left, 4 lower right.
 Preview frames retain the original SVG slot aspect ratios. Images are shown with
 proportional centered cover cropping, matching the existing template behavior.
-The small reset arrow restores original slot artwork. Thumbnails update for manual
-uploads, Steam imports and reopened projects. All SVG geometry remains unchanged.
+Per-art reset buttons and corner plus icons have been removed. The hover/tap
+Replace image overlay remains. Thumbnails update for manual uploads, Steam imports
+and reopened projects. All SVG geometry remains unchanged.
 
 ## Steam import
 
 Enter a Steam App ID and press Fetch from Steam. Confirm before replacing content.
 
-- ART_FRONT and ART_SD: portrait library capsule.
+- ART_FRONT: portrait library capsule.
+- ART_SD: Steam client/community icon from Steam asset metadata (if available).
 - ART_BACK: library hero.
 - INGAME_1_BACK through INGAME_4_BACK: first four store screenshots (not videos).
 - TITLE_BACK and TITLE_SPINE: store game name.
@@ -92,7 +97,11 @@ when those values were not saved in an older project.
 PNG: 3508 x 2480 pixels with 300 DPI metadata.
 PDF: exact A4 landscape, 297 x 210 mm, embedding a high-resolution JPEG.
 SVG: original vector template with embedded images.
-The full original sheet including SD artwork and guides is exported.
+The full newly supplied sheet including SD artwork and guides is exported.
+The supplied SD image frame is 20 x 25 template units (4:5). Both the SD preview
+and image use that ratio, with proportional centered cover cropping. Its original
+transforms and clip path are preserved. Steam client icons may be low-resolution;
+you may manually replace SD Art with a higher-resolution image.
 Print at Actual size / 100%. RGB output, not CMYK/PDF-X.
 Motiva Sans is not bundled: install it or upload a licensed font file.
 Description overflow blocks export until shortened. Long titles/tags are fit

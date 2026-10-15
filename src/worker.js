@@ -148,6 +148,7 @@ export async function importGame(appid) {
   const tagsPromise = storeTags(appid).catch(() => null);
   const jobs = {
     client_icon: iconUrls,
+    logo: candidates(['library_logo_2x', 'library_logo', 'logo_2x', 'logo'], ['logo_2x.png', 'logo.png']),
     capsule: candidates(['library_capsule_2x', 'library_capsule'], ['library_600x900.jpg']),
     hero: candidates(['library_hero_2x', 'library_hero'], ['library_hero.jpg'])
   };
@@ -158,7 +159,7 @@ export async function importGame(appid) {
   if (images.client_icon) {
     images.sd_art = { ...images.client_icon, fit: 'cover', kind: 'client_icon' };
   } else {
-    const logo = await imageData(candidates(['library_logo_2x', 'library_logo', 'logo_2x', 'logo'], ['logo_2x.png', 'logo.png']));
+    const logo = images.logo;
     if (logo) {
       images.sd_art = { ...logo, fit: 'contain', kind: 'logo' };
     } else if (images.capsule) {
@@ -210,7 +211,7 @@ export default {
       const limited = await env.STEAM_RATE_LIMITER.limit({ key: request.headers.get('CF-Connecting-IP') || 'unknown' });
       if (!limited.success) return reply({ error: 'Too many imports. Please wait a minute.' }, 429);
     }
-    const cacheKey = new Request(`${url.origin}/__steam-cache-v4/${match[1]}`);
+    const cacheKey = new Request(`${url.origin}/__steam-cache-v5/${match[1]}`);
     const cache = caches.default;
     const cached = await cache.match(cacheKey);
     if (cached) return new Response(cached.body, { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });

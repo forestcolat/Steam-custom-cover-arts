@@ -60,7 +60,8 @@ those inputs now appear in the editor. All requested display labels are renamed 
 
 APP ID and Fetch from Steam are at the top of the sidebar with no explanatory
 paragraph. Reset template is directly below them. The four screenshots share one
-Screenshots heading. The title input is simply labeled Title. Image measurement
+Screenshots heading. Success/error feedback is directly below Reset template.
+The title input is simply labeled Title. Image measurement
 subtitles have been removed.
 
 Click an artwork preview to choose an image; native file inputs are hidden.
@@ -72,6 +73,23 @@ Per-art reset buttons and corner plus icons have been removed. The hover/tap
 Replace image overlay remains. Thumbnails update for manual uploads, Steam imports
 and reopened projects. All SVG geometry remains unchanged.
 
+## SD source selector and custom fonts
+
+The selector next to SD Art offers Auto, Client icon, Logo and Front art.
+Steam import retrieves all available alternatives. You can switch immediately
+without another network request. Auto retains client icon -> logo -> front art
+fallback behavior. Explicit selections keep existing SD artwork if that source
+is unavailable and show feedback. Logos use contain/meet to stay fully visible;
+icons and front art use proportional cover/slice cropping. The alternatives and
+selected source are preserved in saved projects.
+
+Title and Description each have Custom font and Motiva Sans buttons. Upload TTF,
+OTF, WOFF or WOFF2. The Title custom font applies to TITLE_BACK ONLY, not the spine.
+The Description custom font applies only to DESCRIPTION_BACK. Each has an
+independent reset to bundled Motiva Sans. Font data is embedded into saved
+projects and exported SVG and used when rasterizing PNG/PDF. Use fonts you have
+permission to embed. These controls require no device font installation.
+
 ## Steam import
 
 Enter a Steam App ID and press Fetch from Steam. Confirm before replacing content.
@@ -79,7 +97,8 @@ Enter a Steam App ID and press Fetch from Steam. Confirm before replacing conten
 - ART_FRONT: portrait library capsule.
 - ART_SD: client icon first; if missing, centered logo with full-image contain
   fitting; if no logo is available, the front capsule with cover cropping.
-  If none is available, the current SD artwork remains unchanged.
+  If none is available, the current SD artwork remains unchanged. The SD selector
+  can override Auto with an explicit client icon, logo or front-art choice.
 - ART_BACK: library hero.
 - INGAME_1_BACK through INGAME_4_BACK: first four store screenshots (not videos).
 - TITLE_BACK and TITLE_SPINE: store game name.

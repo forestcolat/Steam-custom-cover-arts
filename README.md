@@ -96,13 +96,13 @@ There is no 3D model file export in this version.
 
 ## SD source selector and custom fonts
 
-The selector next to SD Art offers Auto, Client icon, Logo and Front art.
-Steam import retrieves all available alternatives. You can switch immediately
-without another network request. Auto retains client icon -> logo -> front art
-fallback behavior. Explicit selections keep existing SD artwork if that source
-is unavailable and show feedback. Logos use contain/meet to stay fully visible;
-icons and front art use proportional cover/slice cropping. The alternatives and
-selected source are preserved in saved projects.
+The selector next to SD Art offers only Logo and Front art. Client icons and
+Auto have been removed. Logo is the default. Steam import retrieves available
+logo/front alternatives; switch immediately without another network request.
+If the chosen source is unavailable, existing SD artwork is kept and feedback
+appears. Logos use contain/meet; front art uses proportional cover/slice cropping.
+The alternatives and selected source are preserved in saved projects. Older
+projects with removed source choices migrate to Logo while keeping saved artwork.
 
 Title and Description each have Custom font and Motiva Sans buttons. Upload TTF,
 OTF, WOFF or WOFF2. The Title custom font applies to TITLE_BACK ONLY, not the spine.
@@ -116,10 +116,8 @@ permission to embed. These controls require no device font installation.
 Enter a Steam App ID and press Fetch from Steam. Confirm before replacing content.
 
 - ART_FRONT: portrait library capsule.
-- ART_SD: client icon first; if missing, centered logo with full-image contain
-  fitting; if no logo is available, the front capsule with cover cropping.
-  If none is available, the current SD artwork remains unchanged. The SD selector
-  can override Auto with an explicit client icon, logo or front-art choice.
+- ART_SD: selected Logo (centered, fully visible) or Front art (cover cropped).
+  If the selected source is unavailable, the existing SD artwork stays unchanged.
 - ART_BACK: library hero.
 - INGAME_1_BACK through INGAME_4_BACK: first four store screenshots (not videos).
 - TITLE_BACK and TITLE_SPINE: store game name.
@@ -143,6 +141,19 @@ image cropping remain fixed. Editing and JSON save/reload continue to work.
 Old editor projects are accepted; newly available tags retain template defaults
 when those values were not saved in an older project.
 
+## Export filenames
+
+SVG, PDF and PNG use this pattern:
+
+Game-Title-sd-logo-DD-MM-YYYY-A4.ext
+Game-Title-sd-front-DD-MM-YYYY-A4.ext
+
+The title comes from the current editable Title field, keeping capitalization.
+Whitespace and punctuation become hyphens and unsafe filename characters are
+removed. The date is the user's browser-local date when exporting, not a fixed
+build date. The SD portion follows the selected Logo or Front art option. A blank
+title falls back to Untitled-Game. Project JSON naming is unchanged.
+
 ## Printing
 
 PNG: 3508 x 2480 pixels with 300 DPI metadata.
@@ -152,9 +163,8 @@ The full newly supplied sheet including SD artwork and guides is exported.
 The supplied SD image frame is 20 x 25 template units (4:5). Both the SD preview
 and image use that ratio, with proportional centered cover cropping. Its original
 transforms and clip path are preserved. A logo fallback uses meet/contain, with
-a matching dark background, and fit mode survives project save/reopen. Steam
-client icons may be low-resolution;
-you may manually replace SD Art with a higher-resolution image.
+a matching dark background, and fit mode survives project save/reopen.
+You may also manually replace SD Art with a higher-resolution image.
 Print at Actual size / 100%. RGB output, not CMYK/PDF-X.
 The seven Motiva Sans fonts supplied by you are bundled as embedded WOFF font
 faces: Thin (250), Light (300), Regular (400), Medium (500), Bold (700),

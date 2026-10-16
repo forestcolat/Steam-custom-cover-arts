@@ -142,12 +142,8 @@ export async function importGame(appid) {
     for (const file of defaults) urls.push(`${CDN}steam/apps/${appid}/${file}`);
     return urls;
   }
-  const iconHash = assets.community_icon;
-  const iconUrls = typeof iconHash === 'string' && /^[a-f0-9]{40}$/i.test(iconHash)
-    ? ['cdn.akamai.steamstatic.com','cdn.cloudflare.steamstatic.com','shared.akamai.steamstatic.com'].map(host => `https://${host}/steamcommunity/public/images/apps/${appid}/${iconHash}.jpg`) : [];
   const tagsPromise = storeTags(appid).catch(() => null);
   const jobs = {
-    client_icon: iconUrls,
     logo: candidates(['library_logo_2x', 'library_logo', 'logo_2x', 'logo'], ['logo_2x.png', 'logo.png']),
     capsule: candidates(['library_capsule_2x', 'library_capsule'], ['library_600x900.jpg']),
     hero: candidates(['library_hero_2x', 'library_hero'], ['library_hero.jpg'])
@@ -156,18 +152,8 @@ export async function importGame(appid) {
     jobs[`screenshot_${index + 1}`] = [shot.path_full || shot.path_thumbnail];
   }
   const images = Object.fromEntries(await Promise.all(Object.entries(jobs).map(async ([key, urls]) => [key, await imageData(urls)])));
-  if (images.client_icon) {
-    images.sd_art = { ...images.client_icon, fit: 'cover', kind: 'client_icon' };
-  } else {
-    const logo = images.logo;
-    if (logo) {
-      images.sd_art = { ...logo, fit: 'contain', kind: 'logo' };
-    } else if (images.capsule) {
-      images.sd_art = { ...images.capsule, fit: 'cover', kind: 'front' };
-    } else {
-      images.sd_art = null;
-    }
-  }
+  images.sd_art = images.logo ? { ...images.logo, fit: 'contain', kind: 'logo' }
+    : images.capsule ? { ...images.capsule, fit: 'cover', kind: 'front' } : null;
   let tags = await tagsPromise;
   // Age-gated/SSR pages may omit visible tag anchors. Steam's ranked tag IDs
   // and localized tag dictionary provide the same store-tag names without
@@ -211,7 +197,7 @@ export default {
       const limited = await env.STEAM_RATE_LIMITER.limit({ key: request.headers.get('CF-Connecting-IP') || 'unknown' });
       if (!limited.success) return reply({ error: 'Too many imports. Please wait a minute.' }, 429);
     }
-    const cacheKey = new Request(`${url.origin}/__steam-cache-v5/${match[1]}`);
+    const cacheKey = new Request(`${url.origin}/__steam-cache-v6/${match[1]}`);
     const cache = caches.default;
     const cached = await cache.match(cacheKey);
     if (cached) return new Response(cached.body, { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });

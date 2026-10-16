@@ -73,6 +73,27 @@ Per-art reset buttons and corner plus icons have been removed. The hover/tap
 Replace image overlay remains. Thumbnails update for manual uploads, Steam imports
 and reopened projects. All SVG geometry remains unchanged.
 
+## Interactive 3D case preview
+
+Use the 2D Print / 3D Case toggle above the main preview.
+The 3D view wraps the current BOX folder artwork onto front, spine and back
+surfaces. It excludes the outer print sheet, guides and SD card.
+
+- Drag with mouse or touch to rotate.
+- Scroll, use the plus/minus controls, or press plus/minus to zoom.
+- Front, Spine, Back and Reset view buttons provide camera presets.
+- Focus the viewport and use arrow keys to rotate using the keyboard.
+- Current artwork, imported assets, text and scoped custom fonts are rendered
+  from the same live SVG; edits refresh the textures after a brief debounce.
+
+This is a lightweight native CSS 3D box, not an externally loaded model. No
+additional libraries, downloads or device installation are required. Panel
+proportions and thickness are derived from the template cover/spine dimensions;
+plastic edges are illustrative, not a manufacturer-certified case model.
+Print PNG/PDF/SVG exports remain 2D and unchanged. The model textures use a
+separate preview resolution and do not reduce the print export resolution.
+There is no 3D model file export in this version.
+
 ## SD source selector and custom fonts
 
 The selector next to SD Art offers Auto, Client icon, Logo and Front art.
